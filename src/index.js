@@ -1,12 +1,14 @@
 const express = require('express');
 const morgan = require('morgan');
 const mysql = require('mysql');
+const cors = require('cors');
 
 //Initialization
 const app = express();
 app.set('port', process.env.PORT || 4000);
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(cors());
 app.listen(app.get('port'), () =>{
     console.log(`Server running on http://localhost:${app.get('port')}`)
 })
