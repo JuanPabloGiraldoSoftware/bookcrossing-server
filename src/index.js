@@ -36,14 +36,13 @@ app.post('/login', (req, res)=>{
         for (let i = 0; i < result.length; i++) {
             if(result[i].username===username && result[i].password===password){
                 console.log("Login Succed!");
-                res.send("Login Succed!")
+                res.send(verifyUser)
                 verifyUser=true;
             }
         } 
         if(!verifyUser){
             console.log("Unexistent User!");
-            res.send("Unexistent User!")
+            res.send(verifyUser)
         }
     })
-    console.log(username,password)
 });
