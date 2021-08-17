@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const mysql = require('mysql');
 
 //Initialization
 const app = express();
@@ -10,8 +11,39 @@ app.listen(app.get('port'), () =>{
     console.log(`Server running on http://localhost:${app.get('port')}`)
 })
 
-//Routes
+//Data Base Connection
+var dbManager = mysql.createConnection({
+    host: 'sql10.freemysqlhosting.net',
+    database: 'sql10431128',
+    user: 'sql10431128',
+    password: 'Q3ac28SexB'
+});
+
+dbManager.connect(function(error){
+    if(error){
+        console.log(error);
+    }else{
+        console.log("Conection Succed!")
+    }
+});
+
+//API Endpoints
 app.post('/login', (req, res)=>{
-    console.log(req.body)
-    res.send("Done")
+    let {username, password} = req.body
+    dbManager.query(`SELECT * FROM users`, (err, result)=>{
+        console.log(err)
+        let verifyUser = false;
+        for (let i = 0; i < result.length; i++) {
+            if(result[i].username===username && result[i].password===password){
+                console.log("Login Succed!");
+                res.send("Login Succed!")
+                verifyUser=true;
+            }
+        } 
+        if(!verifyUser){
+            console.log("Unexistent User!");
+            res.send("Unexistent User!")
+        }
+    })
+    console.log(username,password)
 });
