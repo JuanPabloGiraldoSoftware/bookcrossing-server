@@ -49,3 +49,14 @@ app.post('/login', (req, res)=>{
         }
     })
 });
+
+app.post('/signup', (req, res)=>{
+   const {username, password, email, cel} = req.body;
+   var flag = false;
+   dbManager.query(`INSERT INTO users (username, password, email, cel) VALUES (${username}, ${password}, ${email}, ${cel});`, (err, result)=>{
+       console.log(result);
+       console.log(err);
+       flag = true;
+   });
+   flag? res.send(true):res.send(false);
+});
