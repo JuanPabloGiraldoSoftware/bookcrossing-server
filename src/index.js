@@ -15,10 +15,10 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
-    host: process.env.DB_HOST || 'sql10.freemysqlhosting.net',
-    database: process.env.DB_NAME || 'sql10431128',
-    user: process.env.DB_USER || 'sql10431128',
-    password: process.env.DB_PASSWORD ||'Q3ac28SexB'
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'localdb',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD ||'root'
 });
 
 dbManager.connect(function(error){
