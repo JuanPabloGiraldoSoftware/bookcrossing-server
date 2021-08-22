@@ -60,3 +60,22 @@ app.post('/signup', (req, res)=>{
    });
    flag? res.send(true):res.send(false);
 });
+
+app.post('/addingbooks', (req, res)=>{
+    const {title, author, language, gender, year, owner} = req.body
+    var flagBook = false;
+    dbManager.query(`INSERT INTO books (title, author, language, gender, year, userName) VALUES (${title}, ${author}, ${language}, ${gender}, ${year}, ${owner});`, (err, result)=>{
+        console.log(result);
+        console.log(err);
+        flagBook = true;
+        console.log(flagBook);
+        res.send(flagBook);
+    });
+    console.log("adadafdsdf",flagBook);
+ });
+
+ app.get('/getallBooks', (req, res)=>{ 
+    dbManager.query(`SELECT * FROM books`, (err, result)=>{
+        res.send(result)
+    });
+ });
