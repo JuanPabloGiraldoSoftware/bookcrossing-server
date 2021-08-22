@@ -62,9 +62,9 @@ app.post('/signup', (req, res)=>{
 });
 
 app.post('/addingbooks', (req, res)=>{
-    const {title, author, language, gender, year, owner} = req.body
+    const {title, author, language, gender, year, owner, ownerId} = req.body
     var flagBook = false;
-    dbManager.query(`INSERT INTO books (title, author, language, gender, year, userName) VALUES (${title}, ${author}, ${language}, ${gender}, ${year}, ${owner});`, (err, result)=>{
+    dbManager.query(`INSERT INTO books (title, author, language, gender, year, userName, userId) VALUES (${title}, ${author}, ${language}, ${gender}, ${year}, ${owner}, ${ownerId});`, (err, result)=>{
         console.log(result);
         console.log(err);
         flagBook = true;
@@ -77,5 +77,23 @@ app.post('/addingbooks', (req, res)=>{
  app.get('/getallBooks', (req, res)=>{ 
     dbManager.query(`SELECT * FROM books`, (err, result)=>{
         res.send(result)
+    });
+ });
+
+ app.post('/getUserId', (req, res)=>{ 
+    const usrname = req.body.username.toString();
+    console.log("waht",usrname);
+    dbManager.query(`SELECT * FROM users`, (err, result)=>{
+        let userId="";
+        let i = 0;
+        let find = false;
+        while(i<result.length && !find){
+            if(result[i].username===usrname){
+                userId=result[i];
+                find=true;
+            }
+            i+=1
+        }
+        res.send(userId)
     });
  });
