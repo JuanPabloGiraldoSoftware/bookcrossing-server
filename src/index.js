@@ -105,3 +105,40 @@ app.post('/addingbooks', (req, res)=>{
         res.send(result);
     })
  })
+
+ app.post('/saveSelection',(req,res)=>{
+    const {userId,ownerId,bookId} = req.body
+    var flagBook = false;
+    dbManager.query(`INSERT INTO tradeMatching (userId, ownerId, bookId) VALUES (${userId}, ${ownerId}, ${bookId});`, (err, result)=>{
+        console.log(result);
+        console.log(err);
+        flagBook = true;
+        console.log(flagBook);
+        res.send(flagBook);
+    });
+    console.log("adadafdsdf",flagBook);
+ })
+
+ app.post('/verifyMatch',(req,res)=>{
+     const traderId = req.body.traderId;
+     dbManager.query(`SELECT owners.username as owner,
+     owners.email as ownerEmail,
+     owners.cel as ownersCel
+     FROM (tradeMatching 
+     JOIN (users as traders) 
+     ON traders.id=tradeMatching.userId)
+     JOIN (users as owners)
+     ON owners.id=tradeMatching.ownerId
+     WHERE traders.id = ${traderId};`, (err,result)=>{
+         res.send(result)
+     })
+ });
+
+ app.post('/verifySelected',(req,res)=>{
+     const {bookId, traderId} = req.body;
+     dbManager.query(`SELECT * FROM tradeMatching 
+     WHERE bookId=${bookId} AND userId=${traderId}`,(err,result)=>{
+        console.log(result)
+        result.length?res.send(false):res.send(true);
+     })
+ })
