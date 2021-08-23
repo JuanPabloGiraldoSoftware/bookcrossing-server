@@ -98,3 +98,10 @@ app.post('/addingbooks', (req, res)=>{
         res.send(userId)
     });
  });
+
+ app.post('/getBooksFromUser',(req,res)=>{
+    const uId = req.body.userId;
+    dbManager.query(`SELECT * FROM users INNER JOIN books ON users.id=books.userId WHERE userId=${uId}`, (err, result)=>{
+        res.send(result);
+    })
+ })
