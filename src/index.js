@@ -15,8 +15,8 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
-    host: process.env.DB_HOST || '6.tcp.ngrok.io',
-    port: process.env.DB_PORT || '12484',
+    host: process.env.DB_HOST || '2.tcp.ngrok.io',
+    port: process.env.DB_PORT || '12045',
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD ||'root'
@@ -38,14 +38,12 @@ app.post('/login', (req, res)=>{
         let verifyUser = false;
         for (let i = 0; i < result.length; i++) {
             if(result[i].username===username && result[i].password===password){
-                console.log("Login Succed!");
                 verifyUser=true;
                 res.send(verifyUser)
                 
             }
         } 
         if(!verifyUser){
-            console.log("Unexistent User!");
             res.send(verifyUser)
         }
     })
@@ -55,8 +53,6 @@ app.post('/signup', (req, res)=>{
    const {username, password, email, cel} = req.body;
    var flag = false;
    dbManager.query(`INSERT INTO users (username, password, email, cel) VALUES (${username}, ${password}, ${email}, ${cel});`, (err, result)=>{
-       console.log(result);
-       console.log(err);
        flag = true;
    });
    flag? res.send(true):res.send(false);
@@ -66,24 +62,20 @@ app.post('/addingbooks', (req, res)=>{
     const {title, author, language, gender, year, owner, ownerId} = req.body
     var flagBook = false;
     dbManager.query(`INSERT INTO books (title, author, language, gender, year, userName, userId) VALUES (${title}, ${author}, ${language}, ${gender}, ${year}, ${owner}, ${ownerId});`, (err, result)=>{
-        console.log(result);
-        console.log(err);
         flagBook = true;
-        console.log(flagBook);
         res.send(flagBook);
     });
-    console.log("adadafdsdf",flagBook);
  });
 
  app.get('/getallBooks', (req, res)=>{ 
     dbManager.query(`SELECT * FROM books`, (err, result)=>{
         res.send(result)
+        console.log(err);
     });
  });
 
  app.post('/getUserId', (req, res)=>{ 
     const usrname = req.body.username.toString();
-    console.log("waht",usrname);
     dbManager.query(`SELECT * FROM users`, (err, result)=>{
         let userId="";
         let i = 0;
@@ -110,28 +102,46 @@ app.post('/addingbooks', (req, res)=>{
     const {userId,ownerId,bookId} = req.body
     var flagBook = false;
     dbManager.query(`INSERT INTO tradeMatching (userId, ownerId, bookId) VALUES (${userId}, ${ownerId}, ${bookId});`, (err, result)=>{
-        console.log(result);
-        console.log(err);
         flagBook = true;
-        console.log(flagBook);
         res.send(flagBook);
     });
-    console.log("adadafdsdf",flagBook);
  })
 
  app.post('/verifyMatch',(req,res)=>{
-     const traderId = req.body.traderId;
-     dbManager.query(`SELECT owners.username as owner,
-     owners.email as ownerEmail,
-     owners.cel as ownersCel
-     FROM (tradeMatching 
-     JOIN (users as traders) 
-     ON traders.id=tradeMatching.userId)
-     JOIN (users as owners)
-     ON owners.id=tradeMatching.ownerId
-     WHERE traders.id = ${traderId};`, (err,result)=>{
-         res.send(result)
-     })
+     const {traderId, ownerId} = req.body;
+     console.log(traderId,ownerId)
+
+     dbManager.query(`SELECT ownerId, userId, COUNT(*) FROM tradeMatching 
+     WHERE (ownerId=${ownerId} AND userId=${traderId}) 
+     OR (ownerId=${traderId} AND userId=${ownerId})
+     GROUP BY userId, ownerId `, (err, result)=>{
+        console.log("request",result.length);
+        console.log("request",result);
+        if(result.length === 2){
+            dbManager.query(`SELECT * FROM tradeMatching 
+            WHERE (ownerId=${ownerId} AND userId=${traderId}) 
+            OR (ownerId=${traderId} AND userId=${ownerId})`, (err, result)=>{
+                let iBooks = new Map();
+                let keyOwnerTrader = ownerId-traderId;
+                let keyTraderOwner = traderId-ownerId;
+                iBooks.set(keyOwnerTrader,[]);
+                iBooks.set(keyTraderOwner,[]);
+                for (let i = 0; i < result.length; i++) {
+                    let currentKey = result[i].userId - result[i].ownerId
+                    const prev = iBooks.get(currentKey)
+                    const current = [...prev,result[i].bookId]
+                    console.log("current",current)
+                    iBooks.set(currentKey,current);
+                }
+                console.log(iBooks);
+                res.send([iBooks.get(keyOwnerTrader),iBooks.get(keyTraderOwner)])
+            })
+        }else{
+            res.send(false)
+        }
+        
+    });
+     
  });
 
  app.post('/verifySelected',(req,res)=>{
