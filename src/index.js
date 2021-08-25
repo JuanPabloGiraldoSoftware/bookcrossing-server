@@ -152,3 +152,23 @@ app.post('/addingbooks', (req, res)=>{
         result.length?res.send(false):res.send(true);
      })
  })
+
+ app.post('/verifyLikedBook', (req, res)=>{
+     const {userId,bookId} = req.body
+     console.log("req body", bookId, userId);
+     dbManager.query(`SELECT * FROM tradeMatching 
+     WHERE bookId=${bookId} AND userId=${userId}`,(err,result)=>{
+        console.log("likedBookRes",result);
+        result.length?res.send(true):res.send(false);
+     })
+ });
+
+ app.post('/unlikeBook', (req, res)=>{
+    const {userId,bookId} = req.body
+    console.log("req body", bookId, userId);
+    dbManager.query(`DELETE FROM tradeMatching 
+    WHERE bookId=${bookId} AND userId=${userId}`,(err,result)=>{
+        console.log(result)
+       !err?res.send(true):res.send(false)
+    })
+})
