@@ -15,11 +15,11 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || '3306',
-    database: process.env.DB_NAME || '',
-    user: process.env.DB_USER || '',
-    password: process.env.DB_PASSWORD ||''
+    host: process.env.DB_HOST || '0.tcp.ngrok.io',
+    port: process.env.DB_PORT || '19881',
+    database: process.env.DB_NAME || 'db_bookcrossing',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD ||'root'
 });
 
 dbManager.connect(function(error){
@@ -221,3 +221,15 @@ app.post('/getBooksById', (req, res)=>{
         res.send([booksO,booksT])
     });
  });
+
+ app.get('/getallMatches', (req, res)=>{
+    //const {userId, ownerId} = req.body
+    dbManager.query(`SELECT *
+    FROM tradeMatching 
+    WHERE userId = 8 OR ownerId = 8`, (err, result)=>{
+        res.send(result)
+        console.log(err);
+    });
+ });
+
+ 
