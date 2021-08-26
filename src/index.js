@@ -16,7 +16,7 @@ app.listen(app.get('port'), () =>{
 //Data Base Connection
 var dbManager = mysql.createConnection({
     host: process.env.DB_HOST || '8.tcp.ngrok.io',
-    port: process.env.DB_PORT || '12824',
+    port: process.env.DB_PORT || '11737',
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD ||'root'
@@ -31,6 +31,9 @@ dbManager.connect(function(error){
 });
 
 //API Endpoints
+app.get('/', (req,res)=>{
+    res.send("All good!")
+})
 app.post('/login', (req, res)=>{
     let {username, password} = req.body
     dbManager.query(`SELECT * FROM users`, (err, result)=>{
