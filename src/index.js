@@ -15,8 +15,8 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
-    host: process.env.DB_HOST || '2.tcp.ngrok.io',
-    port: process.env.DB_PORT || '12045',
+    host: process.env.DB_HOST || '8.tcp.ngrok.io',
+    port: process.env.DB_PORT || '12824',
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD ||'root'
@@ -171,4 +171,53 @@ app.post('/addingbooks', (req, res)=>{
         console.log(result)
        !err?res.send(true):res.send(false)
     })
-})
+});
+
+app.post('/getBooksById', (req, res)=>{ 
+    const {booksOwner, booksTrader} = req.body;
+    
+    dbManager.query(`SELECT * FROM books`, (err, result)=>{
+        let k = 0;
+        let booksO = [];
+        console.log(result)
+        console.log(booksOwner)
+        while(k < booksOwner.length){
+            let find = false;
+            let i = 0;
+            while(i<result.length && !find){
+                console.log("relquery",typeof result[i].id)
+                console.log("body",typeof booksOwner[k])
+                if(result[i].id===booksOwner[k]){
+                    console.log("in!")
+                    booksO.push(result[i])
+                    find=true
+                }
+                i+=1
+            }
+            k+=1
+        }
+
+        k = 0;
+        let booksT = [];
+        console.log(result)
+        console.log(booksTrader)
+        while(k < booksTrader.length){
+            let find = false;
+            let i = 0;
+            while(i<result.length && !find){
+                console.log("relquery",typeof result[i].id)
+                console.log("body",typeof booksTrader[k])
+                if(result[i].id===booksTrader[k]){
+                    console.log("in!")
+                    booksT.push(result[i])
+                    find=true
+                }
+                i+=1
+            }
+            k+=1
+        }
+        console.log(booksO)
+        console.log(booksT)
+        res.send([booksO,booksT])
+    });
+ });
