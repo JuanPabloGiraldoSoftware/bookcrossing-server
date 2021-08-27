@@ -248,7 +248,7 @@ app.post('/getBooksById', (req, res)=>{
             let high = parseInt(result.length/2);
             let low = 0
             let find = false;
-            while(!find && high < result.length && high!=low){
+            while(!find && high < result.length && !(high<=low)){
                 console.log("high",high);
                 if(columnToSearch==='user'){
                     if(result[high].userId===otherUser){
