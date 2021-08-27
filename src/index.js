@@ -31,6 +31,9 @@ dbManager.connect(function(error){
 });
 
 //API Endpoints
+app.get('/', (req,res)=>{
+    res.send("All good!")
+})
 app.post('/login', (req, res)=>{
     let {username, password} = req.body
     dbManager.query(`SELECT * FROM users`, (err, result)=>{
@@ -69,7 +72,8 @@ app.post('/addingbooks', (req, res)=>{
 
  app.get('/getallBooks', (req, res)=>{ 
     dbManager.query(`SELECT * FROM books`, (err, result)=>{
-        res.send(result)
+        console.log(result);
+        result.length<=0?res.send(false):res.send(result)
         console.log(err);
     });
  });
