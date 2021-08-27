@@ -252,7 +252,7 @@ app.post('/getBooksById', (req, res)=>{
                 console.log("high",high);
                 if(columnToSearch==='user'){
                     if(result[high].userId===otherUser){
-                        matchedUsers.push(result[high].userId);
+                        !matchedUsers.includes(result[high].userId)?matchedUsers.push(result[high].userId):null;
                         rows[high]=true;
                         find=true;
                     }else{
@@ -265,7 +265,7 @@ app.post('/getBooksById', (req, res)=>{
                     }
                 }else{
                     if(result[high].ownerId===otherUser){
-                        matchedUsers.push(result[high].ownerId);
+                        !matchedUsers.includes(result[high].ownerId)?matchedUsers.push(result[high].ownerId):null;
                         rows[high]=true;
                         find=true;
                     }else{
