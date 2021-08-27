@@ -15,8 +15,8 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
-    host: process.env.DB_HOST || '0.tcp.ngrok.io',
-    port: process.env.DB_PORT || '19881',
+    host: process.env.DB_HOST || '6.tcp.ngrok.io',
+    port: process.env.DB_PORT || '16853',
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD ||'root'
@@ -226,12 +226,60 @@ app.post('/getBooksById', (req, res)=>{
     });
  });
 
- app.get('/getallMatches', (req, res)=>{
-    //const {userId, ownerId} = req.body
+ app.post('/getallMatches', (req, res)=>{
+    const userId = req.body.userId
+    console.log("incoming ID:",userId);
     dbManager.query(`SELECT *
     FROM tradeMatching 
-    WHERE userId = 8 OR ownerId = 8`, (err, result)=>{
-        res.send(result)
+    WHERE userId = ${userId} OR ownerId = ${userId}
+    ORDER BY userId ASC`, (err, result)=>{
+        console.log(result);
+        !result?res.send("indefinido"):null;
+        const rows = new Array(result.length);
+        rows.fill(false);
+        let matchedUsers = [];
+        for (let i = 0; i < result.length; i++) {
+            console.log(matchedUsers)
+            if(rows[i]) continue;
+            rows[i]=true;
+            const otherUser = result[i].userId==userId?result[i].ownerId:result[i].userId;
+            if(matchedUsers.includes(otherUser)) continue;
+            const columnToSearch = result[i].userId==userId?'user':'owner';
+            let high = parseInt(result.length/2);
+            let low = 0
+            let find = false;
+            while(!find && high < result.length && high!=low){
+                console.log("high",high);
+                if(columnToSearch==='user'){
+                    if(result[high].userId===otherUser){
+                        matchedUsers.push(result[high].userId);
+                        rows[high]=true;
+                        find=true;
+                    }else{
+                        if(result[high].userId>otherUser){
+                            high=parseInt((high+low)/2)
+                        }else{
+                            low=high;
+                            high=parseInt((result.length-1+high)/2);
+                        }
+                    }
+                }else{
+                    if(result[high].ownerId===otherUser){
+                        matchedUsers.push(result[high].ownerId);
+                        rows[high]=true;
+                        find=true;
+                    }else{
+                        if(result[high].ownerId>otherUser){
+                            high=parseInt((high+low)/2)
+                        }else{
+                            low=high;
+                            high=parseInt((result.length-1-high)/2);
+                        }
+                    }
+                }
+            }
+        }
+        res.send(matchedUsers)
         console.log(err);
     });
  });
