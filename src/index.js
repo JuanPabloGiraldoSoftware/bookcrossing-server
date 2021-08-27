@@ -72,7 +72,8 @@ app.post('/addingbooks', (req, res)=>{
 
  app.get('/getallBooks', (req, res)=>{ 
     dbManager.query(`SELECT * FROM books`, (err, result)=>{
-        res.send(result)
+        console.log(result);
+        result.length<=0?res.send(false):res.send(result)
         console.log(err);
     });
  });
