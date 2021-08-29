@@ -16,7 +16,7 @@ app.listen(app.get('port'), () =>{
 //Data Base Connection
 var dbManager = mysql.createConnection({
     host: process.env.DB_HOST || '4.tcp.ngrok.io',
-    port: process.env.DB_PORT || '19428',
+    port: process.env.DB_PORT || '11663',
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD ||'root'
@@ -235,51 +235,49 @@ app.post('/getBooksById', (req, res)=>{
     ORDER BY userId ASC`, (err, result)=>{
         console.log(result);
         !result?res.send("indefinido"):null;
-        const rows = new Array(result.length);
-        rows.fill(false);
         let matchedUsers = [];
         let mappedUsers = new Map();
         for (let i = 0; i < result.length; i++) {
+            console.log('rowi',i);
             console.log(matchedUsers)
-            if(rows[i]) continue;
-            rows[i]=true;
-            const otherUser = result[i].userId==userId?result[i].ownerId:result[i].userId;
-            if(matchedUsers.includes(otherUser)) continue;
-            const columnToSearch = result[i].userId==userId?'user':'owner';
-            let high = parseInt(result.length/2);
-            let low = 0
-            let find = false;
-            while(!find && high < result.length && !(high<=low)){
-                console.log("high",high);
-                if(columnToSearch==='user'){
-                    if(result[high].userId===otherUser){
-                        !matchedUsers.includes(result[high].userId)?matchedUsers.push(result[high].userId):null;
-                        mappedUsers.set(`${otherUser}-->${userId}`,result[high].bookId)
-                        rows[high]=true;
-                        find=true;
-                    }else{
-                        if(result[high].userId>otherUser){
-                            high=parseInt((high+low)/2)
-                        }else{
-                            low=high;
-                            high=parseInt((result.length-1+high)/2);
-                        }
-                    }
-                }else{
-                    if(result[high].ownerId===otherUser){
-                        !matchedUsers.includes(result[high].ownerId)?matchedUsers.push(result[high].ownerId):null;
-                        mappedUsers.set(`${userId}-->${otherUser}`,result[high].bookId)
-                        rows[high]=true;
-                        find=true;
-                    }else{
-                        if(result[high].ownerId>otherUser){
-                            high=parseInt((high+low)/2)
-                        }else{
-                            low=high;
-                            high=parseInt((result.length-1-high)/2);
-                        }
-                    }
+            const conditionalColumn = result[i].userId===userId;
+            const otherUser = conditionalColumn?result[i].ownerId:result[i].userId;
+            console.log('otheruser',otherUser)
+            for (let j = 0; j < result.length; j++) {
+                console.log('rowj',j);
+                const currentUser =  conditionalColumn?result[j].userId:result[j].ownerId
+                console.log('mapa',mappedUsers)
+                console.log('current',currentUser)
+                console.log('conditional',conditionalColumn)
+                console.log('userId',userId);
+                console.log('result_j',result[j]);
+                console.log('result_i',result[i]);
+                if(currentUser===otherUser && conditionalColumn){
+                    mappedUsers.has(`${otherUser}-->${userId}`)?
+                    mappedUsers.set(`${otherUser}-->${userId}`,
+                    !mappedUsers.get(`${otherUser}-->${userId}`).includes(result[j].bookId)?[...mappedUsers.get(`${otherUser}-->${userId}`),
+                    result[j].bookId]:mappedUsers.get(`${otherUser}-->${userId}`)):
+                    mappedUsers.set(`${otherUser}-->${userId}`,[result[j].bookId])
+
+                    mappedUsers.has(`${userId}-->${otherUser}`)?
+                    mappedUsers.set(`${userId}-->${otherUser}`,
+                    !mappedUsers.get(`${userId}-->${otherUser}`).includes(result[i].bookId)?
+                    [...mappedUsers.get(`${userId}-->${otherUser}`),result[i]].bookId:mappedUsers.get(`${userId}-->${otherUser}`)):
+                    mappedUsers.set(`${userId}-->${otherUser}`,[result[i].bookId])
+                }else if(currentUser===otherUser && !conditionalColumn){
+                    mappedUsers.has(`${userId}-->${otherUser}`)?
+                    mappedUsers.set(`${userId}-->${otherUser}`,[...mappedUsers.get(`${userId}-->${otherUser}`),
+                    !mappedUsers.get(`${userId}-->${otherUser}`).includes(result[j].bookId)?
+                    [...mappedUsers.get(`${userId}-->${otherUser}`),result[j].bookId]:mappedUsers.get(`${userId}-->${otherUser}`)]):
+                    mappedUsers.set(`${userId}-->${otherUser}`,[result[j].bookId])
+
+                    mappedUsers.has(`${otherUser}-->${userId}`)?
+                    mappedUsers.set(`${otherUser}-->${userId}`,
+                    !mappedUsers.get(`${otherUser}-->${userId}`).includes(result[i].bookId)?
+                    [...mappedUsers.get(`${otherUser}-->${userId}`),result[i].bookId]:mappedUsers.get(`${otherUser}-->${userId}`)):
+                    mappedUsers.set(`${otherUser}-->${userId}`,[result[i].bookId])
                 }
+                
             }
         }
         console.log(matchedUsers)
