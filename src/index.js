@@ -243,7 +243,7 @@ app.post('/getBooksById', (req, res)=>{
             const conditionalColumn = result[i].userId===userId;
             const otherUser = conditionalColumn?result[i].ownerId:result[i].userId;
             console.log('otheruser',otherUser)
-            for (let j = 0; j < result.length; j++) {
+            for (let j = i+1; j < result.length; j++) {
                 console.log('rowj',j);
                 const currentUser =  conditionalColumn?result[j].userId:result[j].ownerId
                 console.log('mapa',mappedUsers)
@@ -253,36 +253,64 @@ app.post('/getBooksById', (req, res)=>{
                 console.log('result_j',result[j]);
                 console.log('result_i',result[i]);
                 if(currentUser===otherUser && conditionalColumn){
-                    mappedUsers.has(`${otherUser}-->${userId}`)?
-                    mappedUsers.set(`${otherUser}-->${userId}`,
-                    !mappedUsers.get(`${otherUser}-->${userId}`).includes(result[j].bookId)?[...mappedUsers.get(`${otherUser}-->${userId}`),
-                    result[j].bookId]:mappedUsers.get(`${otherUser}-->${userId}`)):
-                    mappedUsers.set(`${otherUser}-->${userId}`,[result[j].bookId])
+                    !matchedUsers.includes(otherUser)?matchedUsers.push(otherUser):null;
+                    if(mappedUsers.has(`${otherUser}-->${userId}`)){
+                        if(!mappedUsers.get(`${otherUser}-->${userId}`).includes(result[j].bookId)){
+                            mappedUsers.set(`${otherUser}-->${userId}`,
+                            [...mappedUsers.get(`${otherUser}-->${userId}`),result[j].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${otherUser}-->${userId}`,[result[j].bookId])
+                    }
 
-                    mappedUsers.has(`${userId}-->${otherUser}`)?
-                    mappedUsers.set(`${userId}-->${otherUser}`,
-                    !mappedUsers.get(`${userId}-->${otherUser}`).includes(result[i].bookId)?
-                    [...mappedUsers.get(`${userId}-->${otherUser}`),result[i]].bookId:mappedUsers.get(`${userId}-->${otherUser}`)):
-                    mappedUsers.set(`${userId}-->${otherUser}`,[result[i].bookId])
+                    if(mappedUsers.has(`${userId}-->${otherUser}`)){
+                        if(!mappedUsers.get(`${userId}-->${otherUser}`).includes(result[i].bookId)){
+                            mappedUsers.set(`${userId}-->${otherUser}`,
+                            [...mappedUsers.get(`${userId}-->${otherUser}`),result[i].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${userId}-->${otherUser}`,[result[i].bookId])
+                    }
+
                 }else if(currentUser===otherUser && !conditionalColumn){
-                    mappedUsers.has(`${userId}-->${otherUser}`)?
-                    mappedUsers.set(`${userId}-->${otherUser}`,[...mappedUsers.get(`${userId}-->${otherUser}`),
-                    !mappedUsers.get(`${userId}-->${otherUser}`).includes(result[j].bookId)?
-                    [...mappedUsers.get(`${userId}-->${otherUser}`),result[j].bookId]:mappedUsers.get(`${userId}-->${otherUser}`)]):
-                    mappedUsers.set(`${userId}-->${otherUser}`,[result[j].bookId])
+                    !matchedUsers.includes(otherUser)?matchedUsers.push(otherUser):null;
+                    if(mappedUsers.has(`${otherUser}-->${userId}`)){
+                        if(!mappedUsers.get(`${otherUser}-->${userId}`).includes(result[i].bookId)){
+                            mappedUsers.set(`${otherUser}-->${userId}`,
+                            [...mappedUsers.get(`${otherUser}-->${userId}`),result[i].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${otherUser}-->${userId}`,[result[i].bookId])
+                    }
 
-                    mappedUsers.has(`${otherUser}-->${userId}`)?
-                    mappedUsers.set(`${otherUser}-->${userId}`,
-                    !mappedUsers.get(`${otherUser}-->${userId}`).includes(result[i].bookId)?
-                    [...mappedUsers.get(`${otherUser}-->${userId}`),result[i].bookId]:mappedUsers.get(`${otherUser}-->${userId}`)):
-                    mappedUsers.set(`${otherUser}-->${userId}`,[result[i].bookId])
+                    if(mappedUsers.has(`${userId}-->${otherUser}`)){
+                        if(!mappedUsers.get(`${userId}-->${otherUser}`).includes(result[j].bookId)){
+                            mappedUsers.set(`${userId}-->${otherUser}`,
+                            [...mappedUsers.get(`${userId}-->${otherUser}`),result[j].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${userId}-->${otherUser}`,[result[j].bookId])
+                    }
                 }
                 
             }
         }
-        console.log(matchedUsers)
-        console.log(Object.fromEntries(mappedUsers))
-        res.send(Object.fromEntries(mappedUsers))
-        console.log(err);
+        dbManager.query(`SELECT * FROM books`, (err, result)=>{
+            for(let [key, value] of mappedUsers){
+                let fullBooks = []
+                for (let i = 0; i < result.length; i++) {
+                    if(value.includes(result[i].id)){
+                        console.log("in add")
+                        fullBooks.push(result[i])
+                    }
+                }
+                mappedUsers.set(key,fullBooks)
+            }
+            console.log(matchedUsers)
+            console.log(Object.fromEntries(mappedUsers))
+            matchedUsers.length?res.send([Object.fromEntries(mappedUsers),matchedUsers]):res.send(false)
+            console.log(err);
+        })
+
     });
  });
