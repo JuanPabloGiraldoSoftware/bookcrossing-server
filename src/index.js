@@ -15,8 +15,8 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
-    host: process.env.DB_HOST || '6.tcp.ngrok.io',
-    port: process.env.DB_PORT || '16853',
+    host: process.env.DB_HOST || '4.tcp.ngrok.io',
+    port: process.env.DB_PORT || '19428',
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD ||'root'
@@ -238,6 +238,7 @@ app.post('/getBooksById', (req, res)=>{
         const rows = new Array(result.length);
         rows.fill(false);
         let matchedUsers = [];
+        let mappedUsers = new Map();
         for (let i = 0; i < result.length; i++) {
             console.log(matchedUsers)
             if(rows[i]) continue;
@@ -253,6 +254,7 @@ app.post('/getBooksById', (req, res)=>{
                 if(columnToSearch==='user'){
                     if(result[high].userId===otherUser){
                         !matchedUsers.includes(result[high].userId)?matchedUsers.push(result[high].userId):null;
+                        mappedUsers.set(`${otherUser}-->${userId}`,result[high].bookId)
                         rows[high]=true;
                         find=true;
                     }else{
@@ -266,6 +268,7 @@ app.post('/getBooksById', (req, res)=>{
                 }else{
                     if(result[high].ownerId===otherUser){
                         !matchedUsers.includes(result[high].ownerId)?matchedUsers.push(result[high].ownerId):null;
+                        mappedUsers.set(`${userId}-->${otherUser}`,result[high].bookId)
                         rows[high]=true;
                         find=true;
                     }else{
@@ -279,9 +282,9 @@ app.post('/getBooksById', (req, res)=>{
                 }
             }
         }
-        res.send(matchedUsers)
+        console.log(matchedUsers)
+        console.log(Object.fromEntries(mappedUsers))
+        res.send(Object.fromEntries(mappedUsers))
         console.log(err);
     });
  });
-
- 

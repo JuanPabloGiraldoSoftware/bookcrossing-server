@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "forever start src/index.js",
+    "start": "nodemon forever start src/index.js",
     "stop": "forever stop src/index.js"
   },
   "repository": {
