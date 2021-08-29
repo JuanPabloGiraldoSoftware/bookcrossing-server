@@ -15,11 +15,11 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || '3306',
-    database: process.env.DB_NAME || '',
-    user: process.env.DB_USER || '',
-    password: process.env.DB_PASSWORD ||''
+    host: process.env.DB_HOST || '4.tcp.ngrok.io',
+    port: process.env.DB_PORT || '11663',
+    database: process.env.DB_NAME || 'db_bookcrossing',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD ||'root'
 });
 
 dbManager.connect(function(error){
@@ -223,5 +223,94 @@ app.post('/getBooksById', (req, res)=>{
         console.log(booksO)
         console.log(booksT)
         res.send([booksO,booksT])
+    });
+ });
+
+ app.post('/getallMatches', (req, res)=>{
+    const userId = req.body.userId
+    console.log("incoming ID:",userId);
+    dbManager.query(`SELECT *
+    FROM tradeMatching 
+    WHERE userId = ${userId} OR ownerId = ${userId}
+    ORDER BY userId ASC`, (err, result)=>{
+        console.log(result);
+        !result?res.send("indefinido"):null;
+        let matchedUsers = [];
+        let mappedUsers = new Map();
+        for (let i = 0; i < result.length; i++) {
+            console.log('rowi',i);
+            console.log(matchedUsers)
+            const conditionalColumn = result[i].userId===userId;
+            const otherUser = conditionalColumn?result[i].ownerId:result[i].userId;
+            console.log('otheruser',otherUser)
+            for (let j = i+1; j < result.length; j++) {
+                console.log('rowj',j);
+                const currentUser =  conditionalColumn?result[j].userId:result[j].ownerId
+                console.log('mapa',mappedUsers)
+                console.log('current',currentUser)
+                console.log('conditional',conditionalColumn)
+                console.log('userId',userId);
+                console.log('result_j',result[j]);
+                console.log('result_i',result[i]);
+                if(currentUser===otherUser && conditionalColumn){
+                    !matchedUsers.includes(otherUser)?matchedUsers.push(otherUser):null;
+                    if(mappedUsers.has(`${otherUser}-->${userId}`)){
+                        if(!mappedUsers.get(`${otherUser}-->${userId}`).includes(result[j].bookId)){
+                            mappedUsers.set(`${otherUser}-->${userId}`,
+                            [...mappedUsers.get(`${otherUser}-->${userId}`),result[j].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${otherUser}-->${userId}`,[result[j].bookId])
+                    }
+
+                    if(mappedUsers.has(`${userId}-->${otherUser}`)){
+                        if(!mappedUsers.get(`${userId}-->${otherUser}`).includes(result[i].bookId)){
+                            mappedUsers.set(`${userId}-->${otherUser}`,
+                            [...mappedUsers.get(`${userId}-->${otherUser}`),result[i].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${userId}-->${otherUser}`,[result[i].bookId])
+                    }
+
+                }else if(currentUser===otherUser && !conditionalColumn){
+                    !matchedUsers.includes(otherUser)?matchedUsers.push(otherUser):null;
+                    if(mappedUsers.has(`${otherUser}-->${userId}`)){
+                        if(!mappedUsers.get(`${otherUser}-->${userId}`).includes(result[i].bookId)){
+                            mappedUsers.set(`${otherUser}-->${userId}`,
+                            [...mappedUsers.get(`${otherUser}-->${userId}`),result[i].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${otherUser}-->${userId}`,[result[i].bookId])
+                    }
+
+                    if(mappedUsers.has(`${userId}-->${otherUser}`)){
+                        if(!mappedUsers.get(`${userId}-->${otherUser}`).includes(result[j].bookId)){
+                            mappedUsers.set(`${userId}-->${otherUser}`,
+                            [...mappedUsers.get(`${userId}-->${otherUser}`),result[j].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${userId}-->${otherUser}`,[result[j].bookId])
+                    }
+                }
+                
+            }
+        }
+        dbManager.query(`SELECT * FROM books`, (err, result)=>{
+            for(let [key, value] of mappedUsers){
+                let fullBooks = []
+                for (let i = 0; i < result.length; i++) {
+                    if(value.includes(result[i].id)){
+                        console.log("in add")
+                        fullBooks.push(result[i])
+                    }
+                }
+                mappedUsers.set(key,fullBooks)
+            }
+            console.log(matchedUsers)
+            console.log(Object.fromEntries(mappedUsers))
+            matchedUsers.length?res.send([Object.fromEntries(mappedUsers),matchedUsers]):res.send(false)
+            console.log(err);
+        })
+
     });
  });
