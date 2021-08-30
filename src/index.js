@@ -362,3 +362,19 @@ app.post('/getBooksById', (req, res)=>{
  })
 
 
+ app.post('/getLikedBooks', (req, res)=>{ 
+    const userId = req.body.userId
+    dbManager.query(`SELECT tradeMatching.userId AS uId, ownerId, bookId, title, author, language, gender, year, 
+    books.userName, users.username AS uNam
+    FROM (tradeMatching INNER JOIN books ON(books.id=tradeMatching.bookId))INNER JOIN users ON(users.id=tradeMatching.userId)
+    WHERE ownerId=${userId}`, (err, result)=>{
+        console.log('err',err)
+        console.log('result',result)
+        const response =  [];
+        for (let i = 0; i < result.length; i++) {
+            response.push(result[i])
+        }
+        result.length?res.send(response):res.send(false); 
+    })
+ })
+
