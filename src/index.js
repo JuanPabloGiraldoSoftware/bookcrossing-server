@@ -314,3 +314,12 @@ app.post('/getBooksById', (req, res)=>{
 
     });
  });
+
+
+ app.post('/getUserById', (req, res)=>{ 
+    const userId = req.body.userId;
+    dbManager.query(`SELECT * FROM users WHERE id=${userId}`, (err, result)=>{
+        console.log(result)
+        result?res.send(result):false;
+    })
+ })
