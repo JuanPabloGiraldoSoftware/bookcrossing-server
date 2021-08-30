@@ -338,3 +338,27 @@ app.post('/getBooksById', (req, res)=>{
     })
  })
 
+ app.post('/modifyBook', (req, res)=>{ 
+    const {title,author,language,gender,year,bookId} = req.body;
+    console.log('req',title,author,language,gender,year,bookId);
+    dbManager.query(`SELECT * FROM books WHERE id=${bookId}`, (err, result)=>{
+        console.log('result',result)
+        console.log('err',err)
+        const newTitle=title?title:result[0].title;
+        const newAuthor=author?author:result[0].author;
+        const newLanguage=language?language:result[0].language;
+        const newGender=gender?gender:result[0].gender;
+        const newYear=year?year:result[0].year;
+        console.log('newValuess',newTitle, newAuthor,  newLanguage, newGender, newYear)
+        dbManager.query(`UPDATE books
+        SET title='${newTitle}', author='${newAuthor}', language='${newLanguage}', 
+        gender='${newGender}', author='${newAuthor}', year='${newYear}'
+        WHERE id=${bookId}`, (err, result)=>{
+            console.log('result2',result)
+            console.log('err2',err)
+            res.send(true)
+        })
+    })
+ })
+
+
