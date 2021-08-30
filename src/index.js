@@ -323,3 +323,18 @@ app.post('/getBooksById', (req, res)=>{
         result?res.send(result):false;
     })
  })
+
+
+ app.post('/deleteBook', (req, res)=>{ 
+    const bookId = req.body.bookId;
+    dbManager.query(`DELETE FROM tradeMatching WHERE bookId=${bookId}`, (err, result)=>{
+        console.log(result)
+        console.log(err)
+        dbManager.query(`DELETE FROM books WHERE id=${bookId}`, (err, result)=>{
+            console.log(result)
+            console.log(err)
+            res.send(true)
+        })
+    })
+ })
+
