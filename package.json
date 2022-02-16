@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "forever start src/index.js",
-    "stop": "forever stop src/index.js"
+    "stop": "forever stop src/index.js",
+    "dev": "nodemon src/index.js"
   },
   "repository": {
     "type": "git",
