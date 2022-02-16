@@ -15,8 +15,13 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
+<<<<<<< HEAD
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || '3306',
+=======
     host: process.env.DB_HOST || '4.tcp.ngrok.io',
     port: process.env.DB_PORT || '11663',
+>>>>>>> 61ff4de99e7574fa7848052d298fd0f515ee7480
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD ||'root'
