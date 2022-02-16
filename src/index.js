@@ -15,8 +15,13 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
+<<<<<<< HEAD
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || '3306',
+=======
+    host: process.env.DB_HOST || '4.tcp.ngrok.io',
+    port: process.env.DB_PORT || '11663',
+>>>>>>> 61ff4de99e7574fa7848052d298fd0f515ee7480
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD ||'root'
@@ -235,53 +240,146 @@ app.post('/getBooksById', (req, res)=>{
     ORDER BY userId ASC`, (err, result)=>{
         console.log(result);
         !result?res.send("indefinido"):null;
-        const rows = new Array(result.length);
-        rows.fill(false);
         let matchedUsers = [];
+        let mappedUsers = new Map();
         for (let i = 0; i < result.length; i++) {
+            console.log('rowi',i);
             console.log(matchedUsers)
-            if(rows[i]) continue;
-            rows[i]=true;
-            const otherUser = result[i].userId==userId?result[i].ownerId:result[i].userId;
-            if(matchedUsers.includes(otherUser)) continue;
-            const columnToSearch = result[i].userId==userId?'user':'owner';
-            let high = parseInt(result.length/2);
-            let low = 0
-            let find = false;
-            while(!find && high < result.length && high!=low){
-                console.log("high",high);
-                if(columnToSearch==='user'){
-                    if(result[high].userId===otherUser){
-                        matchedUsers.push(result[high].userId);
-                        rows[high]=true;
-                        find=true;
-                    }else{
-                        if(result[high].userId>otherUser){
-                            high=parseInt((high+low)/2)
-                        }else{
-                            low=high;
-                            high=parseInt((result.length-1+high)/2);
+            const conditionalColumn = result[i].userId===userId;
+            const otherUser = conditionalColumn?result[i].ownerId:result[i].userId;
+            console.log('otheruser',otherUser)
+            for (let j = i+1; j < result.length; j++) {
+                console.log('rowj',j);
+                const currentUser =  conditionalColumn?result[j].userId:result[j].ownerId
+                console.log('mapa',mappedUsers)
+                console.log('current',currentUser)
+                console.log('conditional',conditionalColumn)
+                console.log('userId',userId);
+                console.log('result_j',result[j]);
+                console.log('result_i',result[i]);
+                if(currentUser===otherUser && conditionalColumn){
+                    !matchedUsers.includes(otherUser)?matchedUsers.push(otherUser):null;
+                    if(mappedUsers.has(`${otherUser}-->${userId}`)){
+                        if(!mappedUsers.get(`${otherUser}-->${userId}`).includes(result[j].bookId)){
+                            mappedUsers.set(`${otherUser}-->${userId}`,
+                            [...mappedUsers.get(`${otherUser}-->${userId}`),result[j].bookId])
                         }
+                    }else{
+                        mappedUsers.set(`${otherUser}-->${userId}`,[result[j].bookId])
                     }
-                }else{
-                    if(result[high].ownerId===otherUser){
-                        matchedUsers.push(result[high].ownerId);
-                        rows[high]=true;
-                        find=true;
-                    }else{
-                        if(result[high].ownerId>otherUser){
-                            high=parseInt((high+low)/2)
-                        }else{
-                            low=high;
-                            high=parseInt((result.length-1-high)/2);
+
+                    if(mappedUsers.has(`${userId}-->${otherUser}`)){
+                        if(!mappedUsers.get(`${userId}-->${otherUser}`).includes(result[i].bookId)){
+                            mappedUsers.set(`${userId}-->${otherUser}`,
+                            [...mappedUsers.get(`${userId}-->${otherUser}`),result[i].bookId])
                         }
+                    }else{
+                        mappedUsers.set(`${userId}-->${otherUser}`,[result[i].bookId])
+                    }
+
+                }else if(currentUser===otherUser && !conditionalColumn){
+                    !matchedUsers.includes(otherUser)?matchedUsers.push(otherUser):null;
+                    if(mappedUsers.has(`${otherUser}-->${userId}`)){
+                        if(!mappedUsers.get(`${otherUser}-->${userId}`).includes(result[i].bookId)){
+                            mappedUsers.set(`${otherUser}-->${userId}`,
+                            [...mappedUsers.get(`${otherUser}-->${userId}`),result[i].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${otherUser}-->${userId}`,[result[i].bookId])
+                    }
+
+                    if(mappedUsers.has(`${userId}-->${otherUser}`)){
+                        if(!mappedUsers.get(`${userId}-->${otherUser}`).includes(result[j].bookId)){
+                            mappedUsers.set(`${userId}-->${otherUser}`,
+                            [...mappedUsers.get(`${userId}-->${otherUser}`),result[j].bookId])
+                        }
+                    }else{
+                        mappedUsers.set(`${userId}-->${otherUser}`,[result[j].bookId])
                     }
                 }
+                
             }
         }
-        res.send(matchedUsers)
-        console.log(err);
+        dbManager.query(`SELECT * FROM books`, (err, result)=>{
+            for(let [key, value] of mappedUsers){
+                let fullBooks = []
+                for (let i = 0; i < result.length; i++) {
+                    if(value.includes(result[i].id)){
+                        console.log("in add")
+                        fullBooks.push(result[i])
+                    }
+                }
+                mappedUsers.set(key,fullBooks)
+            }
+            console.log(matchedUsers)
+            console.log(Object.fromEntries(mappedUsers))
+            matchedUsers.length?res.send([Object.fromEntries(mappedUsers),matchedUsers]):res.send(false)
+            console.log(err);
+        })
+
     });
  });
 
- 
+
+ app.post('/getUserById', (req, res)=>{ 
+    const userId = req.body.userId;
+    dbManager.query(`SELECT * FROM users WHERE id=${userId}`, (err, result)=>{
+        console.log(result)
+        result?res.send(result):false;
+    })
+ })
+
+
+ app.post('/deleteBook', (req, res)=>{ 
+    const bookId = req.body.bookId;
+    dbManager.query(`DELETE FROM tradeMatching WHERE bookId=${bookId}`, (err, result)=>{
+        console.log(result)
+        console.log(err)
+        dbManager.query(`DELETE FROM books WHERE id=${bookId}`, (err, result)=>{
+            console.log(result)
+            console.log(err)
+            res.send(true)
+        })
+    })
+ })
+
+ app.post('/modifyBook', (req, res)=>{ 
+    const {title,author,language,gender,year,bookId} = req.body;
+    console.log('req',title,author,language,gender,year,bookId);
+    dbManager.query(`SELECT * FROM books WHERE id=${bookId}`, (err, result)=>{
+        console.log('result',result)
+        console.log('err',err)
+        const newTitle=title?title:result[0].title;
+        const newAuthor=author?author:result[0].author;
+        const newLanguage=language?language:result[0].language;
+        const newGender=gender?gender:result[0].gender;
+        const newYear=year?year:result[0].year;
+        console.log('newValuess',newTitle, newAuthor,  newLanguage, newGender, newYear)
+        dbManager.query(`UPDATE books
+        SET title='${newTitle}', author='${newAuthor}', language='${newLanguage}', 
+        gender='${newGender}', author='${newAuthor}', year='${newYear}'
+        WHERE id=${bookId}`, (err, result)=>{
+            console.log('result2',result)
+            console.log('err2',err)
+            res.send(true)
+        })
+    })
+ })
+
+
+ app.post('/getLikedBooks', (req, res)=>{ 
+    const userId = req.body.userId
+    dbManager.query(`SELECT tradeMatching.userId AS uId, ownerId, bookId, title, author, language, gender, year, 
+    books.userName, users.username AS uNam
+    FROM (tradeMatching INNER JOIN books ON(books.id=tradeMatching.bookId))INNER JOIN users ON(users.id=tradeMatching.userId)
+    WHERE ownerId=${userId}`, (err, result)=>{
+        console.log('err',err)
+        console.log('result',result)
+        const response =  [];
+        for (let i = 0; i < result.length; i++) {
+            response.push(result[i])
+        }
+        result.length?res.send(response):res.send(false); 
+    })
+ })
+
