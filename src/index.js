@@ -15,13 +15,8 @@ app.listen(app.get('port'), () =>{
 
 //Data Base Connection
 var dbManager = mysql.createConnection({
-<<<<<<< HEAD
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || '3306',
-=======
-    host: process.env.DB_HOST || '4.tcp.ngrok.io',
-    port: process.env.DB_PORT || '11663',
->>>>>>> 61ff4de99e7574fa7848052d298fd0f515ee7480
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD ||'root'
@@ -185,7 +180,7 @@ app.post('/addingbooks', (req, res)=>{
 app.post('/getBooksById', (req, res)=>{ 
     const {booksOwner, booksTrader} = req.body;
     
-    dbManager.query(`SELECT * FROM books`, (err, result)=>{
+    dbManager.query(`SELECT * FROM books INNER JOIN users ON books.userId = users.id`, (err, result)=>{
         let k = 0;
         let booksO = [];
         console.log(result)
@@ -227,6 +222,7 @@ app.post('/getBooksById', (req, res)=>{
         }
         console.log(booksO)
         console.log(booksT)
+        console.log('result',result)
         res.send([booksO,booksT])
     });
  });
