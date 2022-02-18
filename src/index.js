@@ -152,8 +152,8 @@ app.post('/addingbooks', (req, res)=>{
      const {bookId, traderId} = req.body;
      dbManager.query(`SELECT * FROM tradeMatching 
      WHERE bookId=${bookId} AND userId=${traderId}`,(err,result)=>{
-        console.log(result)
-        result.length?res.send(false):res.send(true);
+        console.log("from verifySelected",result)
+        result && result.length>0?res.send(false):res.send(true);
      })
  })
 
@@ -163,7 +163,7 @@ app.post('/addingbooks', (req, res)=>{
      dbManager.query(`SELECT * FROM tradeMatching 
      WHERE bookId=${bookId} AND userId=${userId}`,(err,result)=>{
         console.log("likedBookRes",result);
-        result.length?res.send(true):res.send(false);
+        result && result.length?res.send(true):res.send(false);
      })
  });
 
@@ -180,7 +180,11 @@ app.post('/addingbooks', (req, res)=>{
 app.post('/getBooksById', (req, res)=>{ 
     const {booksOwner, booksTrader} = req.body;
     
-    dbManager.query(`SELECT * FROM books INNER JOIN users ON books.userId = users.id`, (err, result)=>{
+    dbManager.query(`SELECT books.id as idBook, users.id as idUser, users.username, users.password, users.email, 
+        users.cel, books.title, books.author, books.language, books.gender, books.year, books.userName, 
+        books.userId 
+        FROM books 
+        INNER JOIN users ON books.userId = users.id`, (err, result)=>{
         let k = 0;
         let booksO = [];
         console.log(result)
@@ -189,9 +193,9 @@ app.post('/getBooksById', (req, res)=>{
             let find = false;
             let i = 0;
             while(i<result.length && !find){
-                console.log("relquery",typeof result[i].id)
-                console.log("body",typeof booksOwner[k])
-                if(result[i].id===booksOwner[k]){
+                console.log("relqueryOwner",typeof result[i].id)
+                console.log("bodyOwner",typeof booksOwner[k])
+                if(result[i].idBook===booksOwner[k]){
                     console.log("in!")
                     booksO.push(result[i])
                     find=true
@@ -209,9 +213,9 @@ app.post('/getBooksById', (req, res)=>{
             let find = false;
             let i = 0;
             while(i<result.length && !find){
-                console.log("relquery",typeof result[i].id)
-                console.log("body",typeof booksTrader[k])
-                if(result[i].id===booksTrader[k]){
+                console.log("relqueryTrader",typeof result[i].id)
+                console.log("bodyTrader",typeof booksTrader[k])
+                if(result[i].idBook===booksTrader[k]){
                     console.log("in!")
                     booksT.push(result[i])
                     find=true
@@ -296,11 +300,15 @@ app.post('/getBooksById', (req, res)=>{
                 
             }
         }
-        dbManager.query(`SELECT * FROM books`, (err, result)=>{
+        dbManager.query(`SELECT books.id as idBook, users.id as idUser, users.username, users.password, users.email, 
+        users.cel, books.title, books.author, books.language, books.gender, books.year, books.userName, 
+        books.userId 
+        FROM books 
+        INNER JOIN users ON books.userId = users.id`, (err, result)=>{
             for(let [key, value] of mappedUsers){
                 let fullBooks = []
                 for (let i = 0; i < result.length; i++) {
-                    if(value.includes(result[i].id)){
+                    if(value.includes(result[i].idBook)){
                         console.log("in add")
                         fullBooks.push(result[i])
                     }
