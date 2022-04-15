@@ -6,6 +6,7 @@
   "scripts": {
     "start": "forever start src/index.js",
     "stop": "forever stop src/index.js",
+    "set_watchers": "sudo sysctl -w fs.inotify.max_user_watches=100000",
     "dev": "nodemon src/index.js"
   },
   "repository": {
