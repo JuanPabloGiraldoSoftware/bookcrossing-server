@@ -26,10 +26,14 @@ CREATE TABLE books(
 
 /*tradeMatching table */
 CREATE TABLE tradeMatching(
+    idTrade int NOT NULL AUTO_INCREMENT,
     userId int NOT NULL,
     ownerId int NOT NULL,
-    bookId int NOT NULL
+    bookId int NOT NULL,
+    confirm boolean DEFAULT false,
+    lockedBookId int DEFAULT -1,
     FOREIGN KEY (userId) REFERENCES users(id),
     FOREIGN KEY (ownerId) REFERENCES users(id),
-    FOREIGN KEY (bookId) REFERENCES books(id)
+    FOREIGN KEY (bookId) REFERENCES books(id),
+    PRIMARY KEY (idTrade)
 )

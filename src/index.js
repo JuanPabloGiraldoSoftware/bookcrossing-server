@@ -19,7 +19,7 @@ var dbManager = mysql.createConnection({
     port: process.env.DB_PORT || '3306',
     database: process.env.DB_NAME || 'db_bookcrossing',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD ||'root'
+    password: process.env.DB_PASSWORD ||'bcrs'
 });
 
 dbManager.connect(function(error){
@@ -384,6 +384,49 @@ app.post('/getBooksById', (req, res)=>{
             response.push(result[i])
         }
         result.length?res.send(response):res.send(false); 
+    })
+ })
+
+ app.post('/confirmTrade', (req, res)=>{
+    const {idUsrT, idUsrO, idBookT, idBookO} = req.body;
+
+    dbManager.query(`SELECT * FROM tradeMatching 
+    WHERE (ownerId=${idUsrO} OR ownerId=${idUsrT})
+    AND (userId=${idUsrT} OR userId=${idUsrO})
+    AND (bookId=${idBookO} OR bookId=${idBookT})`,
+    (err,result)=>{
+        console.log(result)
+        if (result.length === 0) return
+        const squery = result;
+        const indexT = squery[0].ownerId===idUsrT?0:1;
+        const indexO = indexT===1?0:1;
+        if(squery[indexT].confirm){
+            if(squery[indexT].lockedBookId === idBookO){
+                dbManager.query(`DELETE FROM tradeMatching
+                WHERE idTrade=${squery[0].idTrade} OR idTrade=${squery[1].idTrade}`,
+                (err,result)=>{
+                    dbManager.query(`DELETE FROM books 
+                    WHERE id=${squery[0].bookId} OR id=${squery[1].bookId}`,
+                    (err,result)=>{
+                        res.send('confirmed')
+                    })
+                })
+            }else{
+                dbManager.query(`SELECT title FROM books
+                WHERE id=${squery[indexT].lockedBookId}`,
+                (err, result)=>{
+                    console.log(result)
+                    res.send(result[0].title);
+                })
+            }
+        }else{
+            dbManager.query(`UPDATE tradeMatching
+            SET confirm=true, lockedBookId=${squery[indexT].bookId} WHERE idTrade=${squery[indexO].idTrade}`,
+            (err, result)=>{
+                console.log(result)
+                res.send('pending')
+            })
+        }
     })
  })
 
