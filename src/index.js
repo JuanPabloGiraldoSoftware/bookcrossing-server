@@ -389,14 +389,15 @@ app.post('/getBooksById', (req, res)=>{
 
  app.post('/confirmTrade', (req, res)=>{
     const {idUsrT, idUsrO, idBookT, idBookO} = req.body;
-
+    console.log(idUsrT, idUsrO, idBookT, idBookO)
+    if (!idUsrT || !idUsrO || !idBookT || !idBookO) return
     dbManager.query(`SELECT * FROM tradeMatching 
     WHERE (ownerId=${idUsrO} OR ownerId=${idUsrT})
     AND (userId=${idUsrT} OR userId=${idUsrO})
     AND (bookId=${idBookO} OR bookId=${idBookT})`,
     (err,result)=>{
         console.log(result)
-        if (result.length === 0) return
+        if (!result || result.length === 0) return
         const squery = result;
         const indexT = squery[0].ownerId===idUsrT?0:1;
         const indexO = indexT===1?0:1;
