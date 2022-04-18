@@ -31,28 +31,28 @@ def test_confirmTrade(idUsrT, idUsrO, idBookT, idBookO):
     .format(idUsrTVal=idUsrT, idUsrOVal=idUsrO, 
     idBookTVal=idBookT, idBookOVal=idBookO))
     squery = dbQueryManager.fetchall()
-    print(squery)
-    if len(squery) == 0: return
+    #print(squery)
+    if len(squery) == 0: return True
     indexT = 0 if squery[0][2]==idUsrT else 1
     indexO = 0 if indexT==1 else 1
     if(squery[indexT][4]):
-        print('f')
+        #print('f')
         if(squery[indexT][5] == idBookO):
-          print('ff')
+          #print('ff')
           api_response = requests.post(request_url, headers=request_headers, data=json.dumps(request_body))
-          print(api_response.text)
+          #print(api_response.text)
           dbBookcrossingTest.close()
           return api_response.text=='confirmed'
         else:
-          print('fs')
+          #print('fs')
           api_response = requests.post(request_url, headers=request_headers, data=json.dumps(request_body))
-          print(api_response.text)
+          #print(api_response.text)
           dbBookcrossingTest.close()
           return api_response.text!='confirmed' and api_response.text!='pending'
     else:
-      print('s')
+      #print('s')
       api_response = requests.post(request_url, headers=request_headers, data=json.dumps(request_body))
-      print(api_response.text)
+      #print(api_response.text)
       dbBookcrossingTest.close()
       return api_response.text=='pending'
 
