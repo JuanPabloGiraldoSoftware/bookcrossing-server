@@ -58,6 +58,6 @@ def test_confirmTrade(idUsrT, idUsrO, idBookT, idBookO):
 
 build_confirmTrade_test_case()
 print(test_confirmTrade(1,2,4,5))
+print(test_confirmTrade(2,1,5,1))
 print(test_confirmTrade(2,1,5,4))
-print(test_confirmTrade(1,2,3,7))
-print(test_confirmTrade(2,1,7,2))
+print(test_confirmTrade(3,3,3,3))
